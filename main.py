@@ -1,17 +1,36 @@
-def load_expenses():
-    pass
+import csv
+
+
+def load_expenses(filename="expenses.csv"):
+    expenses = []
+    try:
+        with open(filename, mode="r") as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                expenses.append(row)
+    except FileNotFoundError:
+            pass
+    return expenses
 
 
 def add_expense(expenses):
-    pass
+    amount = float(input("Enter the amount: "))
+    category = input("Enter the category: ")
+    date = input("Enter the date (YYYY-MM-DD): ")
+    expenses.append({"amount": amount, "category": category, "date": date})
+    print("Expense added.")
 
 
 def view_expenses(expenses):
-    pass
+    for expense in expenses:
+        print(f"Amount: {expense['amount']}, Category: {expense['category']}, Date: {expense['date']}")
 
 
-def save_expenses(expenses):
-    pass
+def save_expenses(expenses, filename="expenses.csv"):
+    with open(filename , mode="w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=["amount", "category", "date"])
+        writer.writeheader()
+        writer.writerows(expenses)
 
 
 def main():
