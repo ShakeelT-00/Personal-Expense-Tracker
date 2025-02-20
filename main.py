@@ -1,50 +1,85 @@
-import csv
+import mysql.connector
 
+"""
+Connect to the MySQL database.
 
-def load_expenses(filename="expenses.csv"):
-    expenses = []
+Returns:
+    connection: the MySQL connection object
+
+Raises:
+    mysql.connector.Error: if there is an error connecting to the database
+"""
+def connect_to_database():
     try:
-        with open(filename, mode="r") as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                expenses.append(row)
-    except FileNotFoundError:
-            pass
-    return expenses
+        return mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="M@Desktop19",
+            database="expense_tracker"
+        )
+    except mysql.connector.Error as err:
+        print(f"Database connection error: {err}")
+        exit()
 
 
-def add_expense(expenses):
+"""
+Add a new expense to the database.
+
+Prompts the user for the expense amount, category, and date.
+"""
+def add_expense():
     amount = float(input("Enter the amount: "))
     category = input("Enter the category: ")
     date = input("Enter the date (YYYY-MM-DD): ")
-    expenses.append({"amount": amount, "category": category, "date": date})
-    print("Expense added.")
+    
+    connection = connect_to_database()
+    cursor = connection.cursor()
+    query = "INSERT INTO expenses (amount, category, date) VALUES (%s, %s, %s)"
+    values = (amount, category, date)
+    cursor.execute(query, values)
+    connection.commit()
+    cursor.close()
+    connection.close()
+    
+    print("Expense added successfully.")
 
 
-def view_expenses(expenses):
+"""
+View all the expenses in the database.
+
+Prints out a list of all expenses in the database, including the ID,
+amount, category, and date.
+"""
+def view_expenses():
+    connection = connect_to_database()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM expenses")
+    expenses = cursor.fetchall()
+    
+    print("\n--- All Expenses ---")
     for expense in expenses:
-        print(f"Amount: {expense['amount']}, Category: {expense['category']}, Date: {expense['date']}")
+        print(f"ID: {expense[0]}, Amount: {expense[1]}, Category: {expense[2]}, Date: {expense[3]}")
+    
+    cursor.close()
+    connection.close()
 
 
-def save_expenses(expenses, filename="expenses.csv"):
-    with open(filename , mode="w", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=["amount", "category", "date"])
-        writer.writeheader()
-        writer.writerows(expenses)
+"""
+Main function to run the program.
 
-
+Displays a menu for the user to choose from, and calls the appropriate
+function based on the user's choice.
+"""
 def main():
-    expenses = load_expenses()
     while True:
-        print("\n1. Add Expense\n2. View Expenses\n3. Save and Exit")
+        print("\n1. Add Expense\n2. View Expenses\n3. Exit")
         choice = input("Enter your choice: ")
         if choice == "1":
-            add_expense(expenses)
+            add_expense()
         elif choice == "2":
-            view_expenses(expenses)
+            view_expenses()
         elif choice == "3":
-            save_expenses(expenses)
-            print("Expenses saved.")
+            print("Exiting.")
             break
         else:
             print("Invalid choice. Please try again.")
