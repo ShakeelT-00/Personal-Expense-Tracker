@@ -1,4 +1,5 @@
 # Import necessary libraries
+from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector
 from dotenv import load_dotenv
 import os
@@ -6,16 +7,21 @@ import os
 # Load environment variables from .env file
 load_dotenv()
 
-"""
-Connect to the MySQL database.
+app = Flask(__name__)
 
-Returns:
-    connection: the MySQL connection object
-
-Raises:
-    mysql.connector.Error: if there is an error connecting to the database
-"""
 def connect_to_database():
+    """
+    Connect to the MySQL database.
+
+    Connects to the MySQL database using the environment variables
+    DB_HOST, DB_USER, DB_PASSWORD, and DB_NAME.
+
+    Returns:
+        connection: the MySQL connection object
+
+    Raises:
+        mysql.connector.Error: if there is an error connecting to the database
+    """
     try:
         return mysql.connector.connect(
             host=os.getenv("DB_HOST"),
@@ -27,16 +33,33 @@ def connect_to_database():
         print(f"Database connection error: {err}")
         exit()
 
+@app.route("/")
+def home():
+    """
+    Display all expenses from the database.
 
-"""
-Add a new expense to the database.
+    Queries the database for all expenses and renders the index.html
+    template with the expenses passed as a parameter.
+    """
+    connection = connect_to_database()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM expenses")
+    expenses = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return render_template("index.html", expenses=expenses)
 
-Prompts the user for the expense amount, category, and date.
-"""
+@app.route("/add", methods=["POST"])
 def add_expense():
-    amount = float(input("Enter the amount: "))
-    category = input("Enter the category: ")
-    date = input("Enter the date (YYYY-MM-DD): ")
+    """
+    Insert a new expense into the database.
+
+    Inserts a new expense into the database using the form data
+    passed from the index.html template.
+    """
+    amount = request.form.get("amount")
+    category = request.form.get("category")
+    date = request.form.get("date")
     
     connection = connect_to_database()
     cursor = connection.cursor()
@@ -46,50 +69,7 @@ def add_expense():
     connection.commit()
     cursor.close()
     connection.close()
-    
-    print("Expense added successfully.")
-
-
-"""
-View all the expenses in the database.
-
-Prints out a list of all expenses in the database, including the ID,
-amount, category, and date.
-"""
-def view_expenses():
-    connection = connect_to_database()
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM expenses")
-    expenses = cursor.fetchall()
-    
-    print("\n--- All Expenses ---")
-    for expense in expenses:
-        print(f"ID: {expense[0]}, Amount: {expense[1]}, Category: {expense[2]}, Date: {expense[3]}")
-    
-    cursor.close()
-    connection.close()
-
-
-"""
-Main function to run the program.
-
-Displays a menu for the user to choose from, and calls the appropriate
-function based on the user's choice.
-"""
-def main():
-    while True:
-        print("\n1. Add Expense\n2. View Expenses\n3. Exit")
-        choice = input("Enter your choice: ")
-        if choice == "1":
-            add_expense()
-        elif choice == "2":
-            view_expenses()
-        elif choice == "3":
-            print("Exiting.")
-            break
-        else:
-            print("Invalid choice. Please try again.")
-
+    return redirect(url_for("home"))
 
 if __name__ == "__main__":
-    main()
+    app.run(debug=True)
