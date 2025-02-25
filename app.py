@@ -71,5 +71,28 @@ def add_expense():
     connection.close()
     return redirect(url_for("home"))
 
+@app.route("/delete/<int:id>")
+def remove_expense(id):
+    """
+    Delete an expense from the database by ID.
+
+    Deletes the expense with the given ID from the database.
+
+    Args:
+        id: the ID of the expense to be deleted
+
+    Returns:
+        HTTP redirect to /
+    """
+    connection = connect_to_database()
+    cursor = connection.cursor()
+    query = "DELETE FROM expenses WHERE id = %s"
+    values = (id,)
+    cursor.execute(query, values)
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return redirect(url_for("home"))
+
 if __name__ == "__main__":
     app.run(debug=True)
