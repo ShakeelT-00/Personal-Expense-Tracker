@@ -1,4 +1,10 @@
+# Import necessary libraries
 import mysql.connector
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
 
 """
 Connect to the MySQL database.
@@ -12,10 +18,10 @@ Raises:
 def connect_to_database():
     try:
         return mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="expense_tracker"
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME")
         )
     except mysql.connector.Error as err:
         print(f"Database connection error: {err}")
