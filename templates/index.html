@@ -4,27 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Tracker</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-    </style>
 </head>
 <body>
     <h1>Expense Tracker</h1>
+    <p>Welcome, {{ current_user.username }}! <a href="/logout">Logout</a></p>
 
     <!-- Form to add a new expense -->
     <form action="/add" method="POST">
         <label for="amount">Amount:</label>
-        <input type="number" name="amount" required>
+        <input type="number" step="0.01" name="amount" required>
 
         <label for="category">Category:</label>
         <input type="text" name="category" required>
